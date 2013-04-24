@@ -17,10 +17,14 @@ int getCount(string &game,int &U,int &D) {
    }
    return D-U;
 }
+int median(vector<int> VInew) {
+   sort(VInew.begin(),VInew.end());
+   return VInew[VInew.size()/2];
+}
 int check(vector<int> &VI) {
-   int avr = accumulate(VI.begin(),VI.end(),0) / VI.size();
+   int avr = median(VI);
    for (int i = 0 ; i < VI.size(); i++)
-     if (VI[i] > avr * 20) VI[i] = avr;
+     if (VI[i] > avr * 5) VI[i] = avr;
 //   return 0;
 }
 int func(int i) {
@@ -50,7 +54,9 @@ int getUsedTime(string &game) {
 //      cout << game << endl;
  //     print(VI);
 //   }
+//   print(VI);
    check(VI);
+//   print(VI);
    return accumulate(VI.begin(),VI.end(),0);
 }
 int main()

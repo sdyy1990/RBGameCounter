@@ -4,7 +4,7 @@
 #include <set>
 #include <vector>
 #include <iostream>
-
+#include <algorithm>
 using namespace std;
 int getCount(string &game,int &U,int &D) {
    bool has = false; U = D = 0;
@@ -14,6 +14,17 @@ int getCount(string &game,int &U,int &D) {
        if (has &&  game[i] =='D') D ++;
    }
    return D-U;
+}
+
+int median(vector<int> VInew) {
+   sort(VInew.begin(),VInew.end());
+   return VInew[VInew.size()/2];
+}
+int min(vector<int> VInew) {
+   int ii = VInew[0];
+   for (int i = 0 ; i < VInew.size(); i++)
+     if (ii > VInew[i]) ii = VInew[i];
+   return ii;
 }
 int main()
 {
@@ -35,19 +46,22 @@ int main()
 //     MAPNAME[name].push_back(s);
    }
    vector<string> * gamelist;
-   cout <<"Gameid,totSubmit,tot_U,avr_U,ans,U/ans"<<endl;
+   cout <<"Gameid,totSubmit,tot_U,avr_U,ans,U/ans,median_U,min_U"<<endl;
    for (map<int , vector<string> >::iterator iMID = MAPID.begin(); iMID!=MAPID.end(); iMID++) {
      gamelist = &( iMID->second) ;
      int tot = 0 , cnt = 0 ;
      int DCNT;
+     vector<int> VIL;
      for (vector<string>::iterator iG = gamelist-> begin(); iG!=gamelist->end(); iG++) {
         tot ++;
         int U; int D;
         DCNT= getCount(*iG,U,D);
+        VIL.push_back(U);
      //   cout << U <<" " << D;
         cnt += U;
      }
-     cout << iMID->first<<","<<tot<<","<<cnt<<","<<cnt*1.0/tot<<","<<DCNT<<","<<cnt*1.0/(tot*DCNT)<<endl;
+     cout << iMID->first<<","<<tot<<","<<cnt<<","<<cnt*1.0/tot<<","<<DCNT<<","
+           <<cnt*1.0/(tot*DCNT)<<","<<median(VIL)<<","<<min(VIL)<<endl;
    }
    return 0;
 }

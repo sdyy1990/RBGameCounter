@@ -9,6 +9,7 @@ int main()
    while (cin >> S)
      E.insert(S);
    for(set<string>::iterator iS = E.begin(); iS!=E.end(); iS++)
+     if ((*iS)[0] =='C')
      cout << *iS << endl;
    return 0;
 }
