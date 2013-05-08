@@ -143,10 +143,10 @@ public:
      if (SPI.empty()) return ;
      FILE *file = fopen(filename,"w");
      int kk;
-     fprintf(file,"%d %d\n",n,kk = (int) (SPI.size()));
-     for (int i = 1; i<=kk; i++) fprintf(file,"%d\n",i);
+     fprintf(file,"%d %d\n",kk = this->n, (int) (SPI.size()));
+     for (int i = 0; i<kk; i++) fprintf(file,"%d\n",i);
      for (set<pair<int,int> > ::iterator iSPI = SPI.begin(); iSPI!=SPI.end(); iSPI++)
-       fprintf(file,"%d %d\n",(iSPI->first),(iSPI->second));
+       fprintf(file,"%d %d\n",(iSPI->first)-1,(iSPI->second)-1);
      fclose(file);
   }  
  
