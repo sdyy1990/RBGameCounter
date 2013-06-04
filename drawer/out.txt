@@ -1,0 +1,17 @@
+\tikzstyle{vertex}=[circle,fill=black!25,minimum size=20pt,inner sep=0pt] 
+\tikzstyle{edge} = [draw,thick,-]
+
+\begin{tikzpicture}[scale=1.8, auto,swap]
+    % First we draw the vertices    \foreach \pos/\name in {
+{(0,0)/v0},
+{(1,1)/v1},{(2,2)/v2},{(3,3)/v3},{(4,4)/v4},{(5,5)/v5},
+{(6,6)/v6},{(7,7)/v7},{(8,8)/v8}}
+       \node[vertex] (\name) at \pos {$\name$}; 
+   % Connect vertices with edges
+\foreach \source/ \dest /\weight in 
+{v0/v1,v0/v3,v0/v6,v0/v8,v1/v2
+,v1/v5,v1/v6,v1/v7,v2/v3,v2/v4
+,v2/v6,v3/v6,v3/v7,v4/v5,v4/v6
+,v5/v6,v5/v7,v6/v7,v6/v8}
+        \path[edge] (\source) -- (\dest); 
+\end{tikzpicture}
