@@ -228,10 +228,15 @@ bool dfs(int mask, int left, pfunc P, int depth){
 
 
 
-struct Node {   int status, todel;  int score;  Node (int st, int nt, int ns) {  status = st;  todel = nt; score = ns;  }};
+struct Node {   int status;  int score;  Node (int st, int ns) {  status = st;  score = ns;  }};
 struct NodeCmp{   bool operator()(const Node &a, const Node &b) {  return (a.score < b.score);   }};
-void dfsBt() {
-       priority_queue<Node, vector<Node>, NodeCmp> nodeQ[100];
+
+
+//priority_queue<Node, vector<Node>, NodeCmp> nodeQ[100];
+list<int> nodeQ[32];
+map<Node,vector<char>> childs;
+map<Node,int>          pchildId;
+
        /*
           initialize nodeQ;
           while (exist not empty layer) {
@@ -239,23 +244,126 @@ void dfsBt() {
                enterDFS(toplayer);
           }
           procedure enterDFS(layer) {
-              nowlayer = layer; root = nodeQ[nowlayer].pop();
-              pointer[] = {0};
-              nextlayer = nowlayer;
+              nowlayer = layer; root = nodeQ[nowlayer].pop(); 
+              
               while (1) {
                  //save stack;
-                 nowlayer = nextlayer;
-
-                 if (pointer[nowlayer]
-                 childlist = get_all_child(root);
-                 remove_all_visited(childlist);
-                 next = childlist[0]; nextlayer = nowlayer+1;
-                 pointer[nextlayer] = 1;
-                 foreach i>0 
-                     nodeQ[nextlayer].insert(childlist[i]);
-                  
+                 rootstack[nowlayer] = root;
+                 nowlayer++; //now , nowlayer points the layer that childs are on,
+                 
+                 if (needprejudge) 
+                    calc : prejudgefails;
+                 if (prejudge passes);
+                     if (this is first time to visit root // should_visit_child_id[root] not exist)
+                         should_visit_child_id[root] = 0;
+                         childs[root] = get_all_childs[rooot];
+                 
+                     while (should_visit_child_id[root] < childs[root].size()) {
+                         newstatus = calcstatus;
+                         if (status_excepted(newstatus)) 
+                              should_visit_cihld_id[root] ++;
+                          else break;
+                     }
+                     //got new should_visit_child_id[root];
+                 
+                 if (s_v_c_id >= child[root].size() || prejudgefails) {
+                     mark excepted(now status);
+                     $$$$$backtrack;
+                     newlayer = nowlayer - backtrackcount
+                     if (newlayer <0) break;
+                     for (ly = newlayer + 1 .. nowlayer -1)
+                        for each  should_visit_child of rootstack[ly], push into nodeQ;
+                     root = rootstack[nowlayer = newlayer];                    
+//brothers on nowlayer :: push into nodeQ;
+//brothers of myfather :: push into nodeQ;
+//sons of new root: need not to push , becuase these sons are to be found by childs[root]
+                 }
+                 else {
+                     root = child;
+                     continue; //push_stack;
+                 }
               }
           }
       
-       */
+}
+*/
+bool succ_exit = false;
+void enterDFS(int);
+unordered_set<int> exceptedmask;
+void DFSBT(int ans_limit) {
+   for (int i = 0 ; i < map_n; i++) nodeQ[i].clear();
+   nodeQ[0].push_back(0);
+   int first;
+   exceptedmask.clear();
+   while (first < map_n && !succ_exit) {
+      for (first = 0 ; first < map_n; first++) 
+        while (!nodeQ[i].empty()) {
+           //recalc path,
+           enterDFS(first,ans_limit);
+        }
+   }
+}
+void enterDFS(int layer,int left, pfunc P) {
+    int nowlayer = layer; 
+    int root = nodeQ[nowlayer].pop_front();
+    Node rootstack[32];
+    while (true) {
+        rootstack[nowlayer] = root;
+        bool fails_prejudge = false;
+           if (bitcount(root)<=prejudgesize)  
+               if (!prejudge(mask,left-nowlayer))
+                    fails_prejudge = true;
+	nowlayer ++;     
+        if (!fails_prejudge) {
+            if (childs.count(root)==0) { 
+               int buf[32]; int n_buf;
+               memset(buf,0,sizeof(buf));
+               P(buf,n_buf,mask);
+               for (int i = 0 ; i < n_buf; i++) {
+                  int todel = buf[i];
+                  int newmask = root;
+                  for (int j = 0 , jm = 1; j<map_n; j++, jm<<=1)
+                     if ((jm&mask) && graph[todel][j]) {
+                         bool flag = false;
+                         for (int k = 0, km = 1; k < map_n && !flag; k++ km<<=1) 
+                            flag = ((km & mask) && (k!=todel) && (graph[k][j]));
+                         if (!flag) newmask ^= jm;
+                         //if j has only one neighbour :todel
+                     }
+                     if (exceptedmask.count(newmask) ==0) childs[root].push_back((char) todel);
+                  }
+               pchildId[root] = 0;
+            }
+            while (pchildId[root] < childs[root].size()) {
+              //calc newstatus 
+              int todel = childs[root][pchild[root]];
+              int newmask = root;
+              for (int j = 0 , jm = 1; j<map_n; j++, jm<<=1)
+                 if ((jm&mask) && graph[todel][j])
+                    {
+                      bool flag = false;
+                      for (int k = 0, km = 1; k < map_n && !flag; k++ km<<=1) 
+                         flag = ((km & mask) && (k!=todel) && (graph[k][j]));
+                      if (!flag) newmask ^= jm;
+                      //if j has only one neighbour :todel
+                    }        
+              if (exceptedmask.count(newmask));
+                 pchildId[root]++;
+              else break;
+            }     
+        }
+        if (pchildId[root] >= childs[root].size() || fails_prejudge) {
+            newlayer = nowlayer - backtrackcount;
+            if (newlayer <= layer) break;
+            for (int ly = newlayer + 1; ly < nowlayer; ly++)
+               for (int whoid = pchildId[rootstack[ly]]; whoid < childs[rootstack[ly]].size(); whoid++)
+                 nodeQ[ly+1].push_back(childs[rootstack[ly]][whoid]);//NEEDCHANGE
+
+        }
+        else {
+           //root = child;
+           //continue // push_stack;
+        }
+        
+    }
 }

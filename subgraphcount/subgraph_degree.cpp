@@ -84,9 +84,18 @@ typedef map<P2,int> MP2;
 MP2 mapcnt;
 int idcnts[200];
 int subgraphid;
+map<string,int> modeCount;
+bool isModeA;
 int main(int argc, char * argv[])
 {
-//   printf("argc = %d\n",argc);
+   if (argc!=2) {
+     printf("usage :\n \t parameter:mode , A/B/AH/BH\n");
+     printf("in H modes, only gameid in [65,64,59,89,92,66,90,72,80] is calced\n");
+   }//   printf("argc = %d\n",argc);
+   isModeA = (argv[1][0]=='A');
+   bool ismodeHard = (argv[1][1]=='H'); 
+   const int hardgamearr[] = {65,64,59,89,92,66,90,72,80};
+   set<int> hardgames (hardgamearr,&hardgamearr[9]);
    memset(idcnts,0,sizeof(idcnts));
    int totcount = 0;
    while (cin >> s) {
@@ -96,6 +105,9 @@ int main(int argc, char * argv[])
       char s1[100];
       sscanf(p,"C%[^,]",s1);
       sscanf(s1,"%d",&mgameid);
+      if (ismodeHard) {
+        if (hardgames.count(mgameid)==0) continue;
+      }
       readgraph(mgameid);
       subgraphid = 0;
       idcnts[mgameid]++;
@@ -112,6 +124,16 @@ int main(int argc, char * argv[])
             if (graph[i][j]) degree[i]++;
       dfs(root,0,0,mgameid);
    }
+   for (map<string,int>::iterator iS = modeCount.begin(); iS!=modeCount.end(); iS++)
+     cout << iS->first <<","<<iS->second<<endl;
+}
+template<typename T> string toString(vector<T> VT) {
+   stringstream ss;
+   string s;
+   for (typename vector<T>::iterator iV = VT.begin(); iV!=VT.end(); iV++) 
+    ss << *iV<<".";
+   ss >> s;
+   return s;
 }
 class SubGraph {
 public:
@@ -135,6 +157,7 @@ public:
   void insertEdge(int x, int y) { //x is innode
      int mx = this->getsubid(x);
      int my = this->getsubid(y);
+   //  cout << "within"<<mx<<my<<endl;
      innode.insert(mx);
      if (mx < my) SPI.insert(make_pair(mx,my));
            else   SPI.insert(make_pair(my,mx));
@@ -162,27 +185,104 @@ public:
      }
      fclose(file);
   }  
- 
+  struct twovalues{
+    int A, B;
+    twovalues(int _A, int _B) : A(_A),B(_B) {};
+    friend ostream & operator <<(ostream & out, twovalues & x) { 
+       out << x.A<<"/"<<x.B;
+    }
+    friend bool operator < (const twovalues &x,const  twovalues &y) {
+       if (x.A!=y.A) return (x.A<y.A); else return (x.B<y.B);
+    }
+  };
+  string degree_string_A() {
+    //innodecount,(degree_I/I,degree_I/O)*innodes:sorted;(degree_I/O)*outnodes:sorted
+    stringstream ss;
+    //cout <<"counting"<<endl;
+    ss << innode.size() <<";";
+//    for (set<int>::iterator innn = innode.begin(); innn!=innode.end(); innn++) cout << *innn <<"-"; cout << endl;
+    map<int,int> DII, DIO, DOI;
+    for (set<pair<int,int> > ::iterator iSPI = SPI.begin(); iSPI!=SPI.end(); iSPI++) {
+       int p1, p2;
+       p1 = innode.count(iSPI->first);p2 = innode.count(iSPI->second);
+       if (p1 && p2 ) {
+         DII[iSPI->first]++; DII[iSPI->second]++; continue;
+       }
+       if ((p2 ==0) && p1) {DIO[iSPI->first] ++; DOI[iSPI->second]++; }
+       else if ((p1==0) && p2)    {DIO[iSPI->second] ++; DOI[iSPI->first]++; }
+//       cout << p1 << p2 <<" " << iSPI->first <<" "<<iSPI->second << endl;
+    }
+    vector<twovalues> TV;
+    for (set<int> :: iterator iS = innode.begin(); iS!=innode.end(); iS++)
+      TV.push_back(twovalues(DII[*iS],DIO[*iS]));
+    sort(TV.begin(),TV.end());
+    ss << toString(TV)<<";";
+    vector<int> TI;
+    for (map<int,int>::iterator iM = DOI.begin(); iM!=DOI.end(); iM++)
+      TI.push_back(iM->second);
+    sort(TI.begin(),TI.end());
+    ss << toString(TI);
+    string s;
+    ss >> s;
+    return s;
+  }
+  string degree_string_B() {
+    //the degree on subgraph
+    stringstream ss;
+    map<int,int> D;
+    for (set<pair<int,int> > ::iterator iSPI = SPI.begin(); iSPI!=SPI.end(); iSPI++) 
+       {D[iSPI->second] ++; D[iSPI->first]++; }
+    vector<int> TI;
+    for (map<int,int>::iterator iM = D.begin(); iM!=D.end(); iM++)
+      TI.push_back(iM->second);
+    sort(TI.begin(),TI.end());
+    ss << toString(TI);
+    string s; ss>>s;
+    return s;
+  }
+  
 };
 int dfs(int root,int mask,int mode,int mgid) {
    if (lch[root]<0) return 0;
    int todel = data[lch[root]];
+   //cout << todel << endl;
    //COUNT_situation
    int isAdj[32];
    int isAdjAdj[32];
    memset(isAdj,0,sizeof(isAdj)); 
    memset(isAdjAdj,0,sizeof(isAdjAdj));
    //cout <<"todel is "<<todel<< endl;
-   for (int i = 0,im = 1 ; i < map_n; i++,im<<=1)
-     if (graph[todel][i] && ((im & mask)==0)) isAdj[i] = 1;
+  
+   for (int i = 0,im = 1 ; i < map_n; i++,im<<=1) 
+     if (graph[todel][i] && ((im & mask)==0)) {
+     isAdj[i] = 1; 
+     //cout <<  i <<",";
+   }
+//   cout << endl;
    SubGraph * sg = new SubGraph(mgid);
    for (int i = 0 , im = 1; i< map_n; i++, im<<=1) 
      if (isAdj[i])
        for (int j = 0 , jm=1; j<map_n; j++, jm<<=1)
-         if (i!=j && j!=todel && graph[i][j] && ((jm&mask)==0))
+         if (i!=j && j!=todel && graph[i][j] && ((jm&mask)==0))  {
             sg->insertEdge(i,j);
+       //     cout <<"insert "<<i <<" "<<j << endl;
+    }
+   
+   for (int i = 0 , im = 1; i< map_n; i++, im<<=1) 
+     if (isAdj[i])
+       for (int j = 0 , jm=1; j<map_n; j++, jm<<=1) if (isAdj[j])
+         if (i!=j && graph[i][j]) {
+            sg->insertEdge(i,j);
+            sg->insertEdge(j,i);
+   }
    stringstream ss; ss <<"todelis"<<todel; string filename; ss>>filename;
-   sg->tofile();
+//   sg->tofile();
+     if (isModeA)
+     modeCount[sg->degree_string_A()]++;
+     else 
+     modeCount[sg->degree_string_B()]++;
+     //cout << sg->degree_string_A() << endl;
+   
    delete sg;
    for (int i = 0,im = 1 ; i < map_n; i++,im<<=1)
      if (graph[todel][i] && ((im & mask)==0)) degree[i] --;

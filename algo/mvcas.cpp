@@ -60,7 +60,7 @@ string tostring(vector<int> VI) {
   string s; ss >> s;   return s;
 }
 map<string,int> mapcnt2;
-#define MODE_MINUM_THRESH 300
+#define MODE_MINUM_THRESH 800
 void loadmode() {
    mapcnt2.clear();
    while (1) {
@@ -71,10 +71,10 @@ void loadmode() {
      int a,b;
      ss>>a >>s >>b;
      mapcnt2[s]+=b;
-     //cout << s <<"--"<< b << endl;
+//     if (iM->second > MODE_MINUM_THRESH) cerr << s <<"--"<< b << endl;
    }
    for(map<string,int>::iterator iM = mapcnt2.begin(); iM!=mapcnt2.end(); iM++)
-     if (iM->second>MODE_MINUM_THRESH) ; //--cout << iM->first<<"-->"<<iM->second<<endl;
+     if (iM->second>MODE_MINUM_THRESH) cerr << iM->first<<"-->"<<iM->second<<endl;
         else iM->second = 0;
 }
 int get_modecount(int todel,int mask) {
@@ -110,7 +110,7 @@ void mode_order_func(int result[],int &n,int mask) {
  //  printf("\n");
 }
 bool dfs(int mask, int left, pfunc P,int depth );
-unordered_set<int> visitedmaskset;
+map<int,int> visitedmaskwithminiumD;
 #define MAXX 10000000
 bool needprejudge = false;
 int prejudgesize;
@@ -127,7 +127,7 @@ int main(int argc, char * argv[])
 //   printf("%d gameid",gameid);
    readgraph(gameid);
    memset(degree,0,sizeof(degree));
-   visitedmaskset.clear();
+   visitedmaskwithminiumD.clear();
    if (argc>=4) {needprejudge = true;  sscanf(argv[3],"%d",&prejudgesize); }
    for (int i = 0 ; i < map_n ; i++) 
       for (int j = 0 ; j < map_n ; j++) 
@@ -169,20 +169,20 @@ bool prejudge(int mask,int left) {
 }
 #define PREJUDGE_SIZE 5
 bool dfs(int mask, int left, pfunc P, int depth){
-  // for (int i = 0 ; i < depth; i++) printf("%d\t",path[i]); printf("\n");
+   for (int i = 0 ; i < depth; i++) cerr << path[i]<<"\t"; cerr << endl;
    if (mask ==0 ) {
    //   for (int i = 0 ; i < depth; i++) printf("%d\t",path[i]); printf("\n");
       if (mask==0) return true;
    }
    if (needprejudge) if (bitcount(mask)<=prejudgesize) {
       if (!prejudge(mask,left)) { //printf("!!");
-           return false;
+           totcnt++; return false;
       }
 //      return true;
    }
-   visitedmaskset.insert(mask);
-   if (totcnt > MAXX) return false;
-   if (left ==0) return false;
+   visitedmaskwithminiumD[mask] = depth;
+   if (totcnt > MAXX|| left ==0) { totcnt++;  return false;} 
+//   if (left ==0) return false;
    int buf[32]; int n_buf;
    memset(buf,0,sizeof(buf));
    P(buf,n_buf,mask);
@@ -195,12 +195,15 @@ bool dfs(int mask, int left, pfunc P, int depth){
       int newmask = 0 ;
       for (int j = 0 , jm=1; j<map_n; j++, jm<<=1)
         if (degree[j]) newmask += jm;
-      if (visitedmaskset.count(newmask)==0)  {
+      bool flag = (visitedmaskwithminiumD.count(newmask) ==0);
+      if (!flag) flag = (depth+1<visitedmaskwithminiumD[newmask]);
+      if (flag)//  {
          if (dfs(newmask,left-1,P,depth+1)) return true;
-         totcnt++;
-      }
+      
       degree[todel] = backdegree;
       for (int j = 0 , jm=1; j<map_n; j++, jm<<=1)
         if ((jm & mask) && graph[todel][j]) degree[j]++;
    }
+         totcnt++;
+   return false;
 }
