@@ -8,10 +8,14 @@
 #include <vector>
 #include <algorithm>
 #include <unordered_set>
+#include <set>
 using namespace std;
+
+#include "subgraph.cpp"
 int map_n;
 int map_ans;
 int graph[32][32];
+
 void readgraph(int gameid) {
    ifstream fin ("graph.txt");
    string s;
@@ -28,6 +32,32 @@ void readgraph(int gameid) {
             graph[a][b]=graph[b][a]=1;
         }
    map_ans = k;
+}
+string getmodestringA(int todel,int mask) {
+//   int todel = data[lch[root]];
+   int isAdj[32];   int isAdjAdj[32];
+   memset(isAdj,0,sizeof(isAdj)); 
+   memset(isAdjAdj,0,sizeof(isAdjAdj));
+   for (int i = 0,im = 1 ; i < map_n; i++,im<<=1) 
+     if (graph[todel][i] && ((im & mask)==0)) isAdj[i] = 1; 
+//   cout << endl;
+   SubGraph * sg = new SubGraph(0);
+   for (int i = 0 , im = 1; i< map_n; i++, im<<=1)      if (isAdj[i])
+       for (int j = 0 , jm=1; j<map_n; j++, jm<<=1)
+         if (i!=j && j!=todel && graph[i][j] && ((jm&mask)==0))  
+            sg->insertEdge(i,j);
+     
+   
+   for (int i = 0 , im = 1; i< map_n; i++, im<<=1)      if (isAdj[i])
+       for (int j = 0 , jm=1; j<map_n; j++, jm<<=1) if (isAdj[j])
+         if (i!=j && graph[i][j]) {
+            sg->insertEdge(i,j);            sg->insertEdge(j,i);
+         }
+   string s = sg->degree_string_A();
+
+   return s;
+   
+
 }
 typedef void pfunc(int [], int &,int); //put result into [], length == n
 //calc 
@@ -89,6 +119,35 @@ int get_modecount(int todel,int mask) {
      if (res>0) return res; return 1000+degree[todel];
  
 }
+map<string,int> expandmodesmap;
+void loadexpandedmode() {
+    expandmodesmap.clear();
+    while (1) {
+      string s;
+      getline(cin,s);
+      if (s.size() ==0) break;
+      stringstream ss; ss << s;
+      int i;  ss>> s >> i; if (s[s.size()-1] !='.') s.push_back('.');
+//      cout << s << endl;
+      expandmodesmap[s] = i;
+    }
+}
+void expanded_mode_func(int result[], int &n, int mask) {
+   original_order_func(result,n,mask);
+   int cnt[32];
+   for (int i = 0 ; i < n ; i++) {
+      string s = getmodestringA(result[i],mask);
+//      cout << result[i] <<"::"<< s << expandmodesmap[s] << endl;
+
+//      cnt[result[i]] = expandmodesmap[getmodestringA(result[i],mask)];
+   }
+   for (int i = 0; i < n ; i++)
+     for (int j = i+1 ; j < n ; j++)
+        if (cnt[result[i]]<cnt[result[j]]) {
+           int t = result[i]; result[i] = result[j]; result[j] = t;
+        }
+
+}
 void mode_order_func(int result[],int &n,int mask) {
    original_order_func(result,n,mask);
  //  if (n>=5) {
@@ -114,6 +173,7 @@ map<int,int> visitedmaskwithminiumD;
 #define MAXX 10000000
 bool needprejudge = false;
 int prejudgesize;
+
 int main(int argc, char * argv[])
 {
    if (argc <= 2) {
@@ -139,6 +199,10 @@ int main(int argc, char * argv[])
    else if (argv[2][0] =='M') {
       loadmode();
       dfs((1<<map_n)-1,map_ans,mode_order_func,0);
+   }
+   else if (argv[2][0] =='m') {
+      loadexpandedmode(); //return 0;
+      dfs((1<<map_n)-1,map_ans,expanded_mode_func,0);
    }
    else if (argv[2][0] =='R')
       dfs((1<<map_n)-1,map_ans,random_order_func,0);
@@ -169,7 +233,7 @@ bool prejudge(int mask,int left) {
 }
 #define PREJUDGE_SIZE 5
 bool dfs(int mask, int left, pfunc P, int depth){
-   for (int i = 0 ; i < depth; i++) cerr << path[i]<<"\t"; cerr << endl;
+//   for (int i = 0 ; i < depth; i++) cerr << path[i]<<"\t"; cerr << endl;
    if (mask ==0 ) {
    //   for (int i = 0 ; i < depth; i++) printf("%d\t",path[i]); printf("\n");
       if (mask==0) return true;
