@@ -17,11 +17,13 @@ int map_ans;
 int graph[32][32];
 
 void readgraph(int gameid) {
-   ifstream fin ("graph.txt");
+   ifstream fin;
+   if (gameid<0) {fin.open("graph2.txt"); gameid = -gameid;}
+               else fin.open("graph.txt");
    string s;
    for (int i = 1; i<gameid; i++) getline(fin,s);
    getline(fin,s);
-//   cout << s << endl;
+   cout << s << endl;
    stringstream ss;
    ss << s;
    int k,m,a,b;
@@ -133,13 +135,14 @@ void loadexpandedmode() {
     }
 }
 void expanded_mode_func(int result[], int &n, int mask) {
-   original_order_func(result,n,mask);
+   degree_order_func(result,n,mask);
    int cnt[32];
    for (int i = 0 ; i < n ; i++) {
       string s = getmodestringA(result[i],mask);
-//      cout << result[i] <<"::"<< s << expandmodesmap[s] << endl;
-
-//      cnt[result[i]] = expandmodesmap[getmodestringA(result[i],mask)];
+//      cout << result[i] <<"::"<< expandmodesmap[s] <<":"<<s<< endl;
+      int qq = -i;
+      if (expandmodesmap.find(s)!=expandmodesmap.end()) qq = expandmodesmap[s];
+      cnt[result[i]] = qq;
    }
    for (int i = 0; i < n ; i++)
      for (int j = i+1 ; j < n ; j++)
@@ -179,7 +182,7 @@ int main(int argc, char * argv[])
    if (argc <= 2) {
      printf("usage : mvcas gameid algorithm prejudgesize\n, gameid in 1..100, \n algorithm: \tO for order_id\n");
      printf("\tD for degree-decrease\n\tM for modecount\n\tR for random\t");
-     
+     printf("\n for gameid <0, use graph2.txt\n");  
      return 0;
    }
    int gameid;

@@ -71,7 +71,7 @@ public:
     //innodecount,(degree_I/I,degree_I/O)*innodes:sorted;(degree_I/O)*outnodes:sorted
     stringstream ss;
     //cout <<"counting"<<endl;
-    ss << innode.size() <<";";
+    //ss << innode.size() <<";";
 //    for (set<int>::iterator innn = innode.begin(); innn!=innode.end(); innn++) cout << *innn <<"-"; cout << endl;
     map<int,int> DII, DIO, DOI;
     for (set<pair<int,int> > ::iterator iSPI = SPI.begin(); iSPI!=SPI.end(); iSPI++) {
